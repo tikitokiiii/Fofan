@@ -1,0 +1,200 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Кассовый аппарат</title>
+  <style>
+    * {
+      box-sizing: border-box;
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+    }
+    body {
+      margin: 0;
+      padding: 16px;
+      background: #143326;
+      color: #111827;
+      min-height: 100vh;
+    }
+    .app {
+      max-width: 720px;
+      margin: 0 auto;
+      background: #f9fafb;
+      border-radius: 16px;
+      padding: 20px;
+      box-shadow: 0 12px 30px rgba(0, 0, 0, 0.25);
+    }
+    h1 {
+      margin: 0 0 16px;
+      font-size: 24px;
+    }
+    h2 {
+      margin: 18px 0 10px;
+      font-size: 17px;
+    }
+    .row {
+      display: flex;
+      gap: 8px;
+      margin-bottom: 10px;
+      flex-wrap: wrap;
+    }
+    input {
+      flex: 1;
+      min-width: 120px;
+      padding: 10px 12px;
+      border: 1px solid #d1d5db;
+      border-radius: 10px;
+      font-size: 15px;
+      background: #fff;
+    }
+    button {
+      padding: 10px 14px;
+      border: none;
+      border-radius: 10px;
+      font-size: 15px;
+      font-weight: 600;
+      cursor: pointer;
+      background: #e5e7eb;
+      color: #111827;
+      transition: opacity 0.15s ease, transform 0.1s ease;
+    }
+    button:active {
+      transform: scale(0.98);
+    }
+    .btn-primary {
+      background: #16a34a;
+      color: #fff;
+    }
+    .btn-danger {
+      background: #dc2626;
+      color: #fff;
+    }
+    .btn-delete-item {
+      background: #fee2e2;
+      color: #b91c1c;
+      padding: 6px 10px;
+      font-size: 13px;
+      border-radius: 8px;
+    }
+    .presets {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      margin: 12px 0 16px;
+    }
+    .preset-chip {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      background: #e0f2fe;
+      color: #0c4a6e;
+      border-radius: 10px;
+      padding: 4px 6px 4px 10px;
+      font-size: 14px;
+      font-weight: 600;
+    }
+    .preset-add {
+      background: transparent;
+      color: inherit;
+      padding: 4px 6px;
+      font-size: 14px;
+    }
+    .empty-hint {
+      color: #6b7280;
+      font-size: 14px;
+      margin: 6px 0 12px;
+    }
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      background: #fff;
+      border-radius: 12px;
+      overflow: hidden;
+      margin-top: 8px;
+    }
+    th, td {
+      padding: 10px;
+      border-bottom: 1px solid #e5e7eb;
+      text-align: left;
+      font-size: 14px;
+    }
+    th {
+      background: #f3f4f6;
+    }
+    .summary {
+      margin-top: 14px;
+      background: #fff;
+      padding: 14px;
+      border-radius: 12px;
+    }
+    .total {
+      font-size: 20px;
+      font-weight: 700;
+      margin-bottom: 10px;
+    }
+    .status {
+      margin-top: 10px;
+      font-weight: 600;
+    }
+  </style>
+</head>
+<body>
+  <div class="app">
+    <h1>Кассовый аппарат</h1>
+
+    <div class="row">
+      <input id="barcodeSearch" type="text" placeholder="Штрихкод / код (Enter)" />
+      <button class="btn-primary" onclick="findByBarcode()">Найти по штрихкоду</button>
+      <button onclick="clearCart()">Очистить</button>
+    </div>
+
+    <div class="row">
+      <input id="nameSearch" type="text" placeholder="Поиск по названию товара..." oninput="renderCatalog()" />
+      <button onclick="resetSearch()">Сброс названия</button>
+    </div>
+
+    <div class="row">
+      <input id="newBarcode" type="text" placeholder="Штрихкод" />
+      <input id="newName" type="text" placeholder="Новый товар" />
+      <input id="newPrice" type="number" placeholder="Цена" min="0" step="any" />
+      <button class="btn-primary" onclick="addProduct()">+ Товар</button>
+    </div>
+
+    <h2>Товары на складе (нажмите на товар для добавления или удалите его)</h2>
+    <div id="catalogList" class="presets"></div>
+
+    <table>
+      <thead>
+        <tr>
+          <th>Товар</th>
+          <th>Кол-во</th>
+          <th>Цена</th>
+          <th>Сумма</th>
+          <th></th>
+        </tr>
+      </thead>
+      <tbody id="cartBody"></tbody>
+    </table>
+
+    <div class="summary">
+      <div class="total">Итого: <span id="totalAmount">0.00</span> тг</div>
+      <div class="row">
+        <input id="paidInput" type="number" placeholder="Внесено" min="0" step="any" oninput="updateChange()" />
+        <div style="align-self: center; font-weight: 700;">
+          Сдача: <span id="changeAmount">0.00</span> тг
+        </div>
+      </div>
+      <div class="row">
+        <button class="btn-primary" onclick="setStatus('Оплачено', true)">Оплачено</button>
+        <button class="btn-danger" onclick="setStatus('Не оплачено', false)">Не оплачено</button>
+      </div>
+      <div id="statusText" class="status">Готово к работе.</div>
+    </div>
+  </div>
+
+  <script>
+    const STORAGE_PRODUCTS_KEY = 'kassa_products_v1';
+    const STORAGE_CART_KEY = 'kassa_cart_v1';
+
+    let products = JSON.parse(localStorage.
+  
